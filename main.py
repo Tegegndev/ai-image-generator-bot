@@ -2,6 +2,8 @@ import telebot
 from config import *
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from termcolor import colored
+from utils import image_generator_api
+
 
 bot = telebot.TeleBot(BOT_TOKEN,colorful_logs=True,)
 
@@ -19,8 +21,18 @@ def start(message):
 Welcome to AI Image Generator Bot
 just send your prompt and I will generate an image for you
     '''
+    
     bot.reply_to(message,welcome_message,reply_markup=keyboard)
+    bot.register_next_step_handler(message, ask_prompt)
 
+
+def ask_prompt(message):
+    prompt = message.text
+    bot.send_message(message.chat.id, f"generating image")
+    print(prompt)
+    result = image_generator_api(prompt)
+    print(result, message)
+    bot.send_photo(message.from_user.id,result)
 
 
 @bot.message_handler(commands=['help'])
@@ -39,12 +51,25 @@ def callback_inline(call):
     else:
         bot.send_message(call.message.chat.id, 'Unknown command.')   
 
+
+#handleforwared messages
+@bot.message_handler(content_types=['text'], func=lambda message: message.forward_from)
+def handle_forwarded_message(message):
+    print(colored(f"Received forwarded message: {message.text}", 'blue'))
+    bot.reply_to(message, "I can't process forwarded messages yet.")    
+
+#handle incoming messages
+@bot.message_handler(content_types=['text'])
+def all_messages(message):
+    
+    if message.text.startswith('/'):
+        print('coomand recieved')
+    else:
+        print(colored(f"Received message: {message.text}", 'green'))
+        ask_prompt(message)
+        bot.register_next_step_handler(message, ask_prompt)
+
 if __name__ == '__main__':
-    import time
-    while True:
-        try:
-            print(colored("Bot is restarted ...", 'yellow'))
-            bot.polling(none_stop=True,restart_on_change=True,timeout=40)    
-        except:
-            print("Bot got an error trying again after 3sec ...")
-            time.sleep(3)
+        print(colored("Bot is restarted ...", 'yellow'))
+        bot.polling(timeout=40)    
+            
