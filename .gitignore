@@ -1,1 +1,3 @@
-.config.py
+./config.py
+# pycache exclude folder
+__pycache__/
