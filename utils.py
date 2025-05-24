@@ -4,13 +4,13 @@ from config import API_URL
 
 
 def image_generator_api(prompt):
-    url = f"{API_URL}/default/ai_image?prompt={prompt}&aspect_ratio=16:9"
+    url = f"{API_URL}/default/ai_image?prompt={prompt} add text @tegegn at the bottom &aspect_ratio=16:9"
+    print(colored(url, 'blue'), prompt)
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         if data['status'] == 'success':
-            print("Image generated successfully!")
-            print(colored("Image URL:", 'green'), data['image_link'])
+            print(colored("Imagae gegenaration secuss:", 'green'), data['image_link'])
             return data['image_link']
         else:
             print("Error generating image:", data['message'])

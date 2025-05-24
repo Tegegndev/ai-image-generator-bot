@@ -3,3 +3,4 @@ API_URL = 'https://1yjs1yldj7.execute-api.us-east-1.amazonaws.com'
 CHANNEL_USERNAME = "@tegegndev"
 WEBHOOK_URL = ''
 IN_PRODUCTION = False
+ADMIN_USER_ID = 848696652

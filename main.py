@@ -73,6 +73,8 @@ def start(message):
 🖼️ Welcome to AI Image Generator Bot.
 Just send your prompt and I will generate an image for you! ✨
     '''
+    # Clear any previous prompt for this user on /start
+    user_prompts[message.from_user.id] = None
     bot.reply_to(message, welcome_message, reply_markup=keyboard)
     bot.register_next_step_handler(message, ask_prompt)
 
@@ -82,33 +84,38 @@ def send_typing_action(chat_id):
 
 user_prompts = {}
 
-def ask_prompt(message, prompt=None):
+def ask_prompt(message, prompt=None, regenerate=False):
     if not is_user_in_channel(message.from_user.id):
         force_join_channel(message)
         return
+
+    user_id = message.from_user.id
+
+    if regenerate:
+        prompt = user_prompts.get(user_id)
+        
+        if not prompt:
+            bot.send_message(message.chat.id, "⚠️ No previous prompt found. Please send a new prompt.")
+            return
+    else:
+        prompt = message.text
+        user_prompts[user_id] = prompt
+
     keyboard = InlineKeyboardMarkup()
     generate_again_btn = InlineKeyboardButton(text='🔄 Generate Again', callback_data='generate_again')
     keyboard.add(generate_again_btn)
-    if prompt is None:
-        prompt = message.text
 
-    # Save to dict the promopt
-    user_prompts[message.from_user.id] = prompt
-
-    # Typing effect
     send_typing_action(message.chat.id)
     time.sleep(1.2)
 
- 
     try:
         if hasattr(message, 'reply_to_message') and message.reply_to_message:
             bot.delete_message(message.chat.id, message.reply_to_message.message_id)
-    except Exception as e:
+    except Exception:
         pass
 
     bot.send_message(message.chat.id, "🎨 Generating your image, please wait...")
-
-    print(prompt)
+    print(colored(f"Generating image for prompt: {prompt}", 'green'))
     result = None
     retries = 3
     for attempt in range(retries):
@@ -117,13 +124,14 @@ def ask_prompt(message, prompt=None):
             if result:
                 break
         except Exception as e:
+            bot.send_message(message.chat.id, "❗ An error occurred while generating the image. Retrying...")
             print(colored(f"API error: {e}", 'red'))
         time.sleep(1)
 
     if result:
-        # Always send to the chat where the user is, not to from_user.id
-        sent_msg = bot.send_photo(message.chat.id, result, reply_markup=keyboard)
-        bot.register_next_step_handler(message, ask_prompt, prompt)
+        bot.send_photo(message.chat.id, result, reply_markup=keyboard)
+        if not regenerate:
+            bot.register_next_step_handler(message, ask_prompt)
     else:
         bot.send_message(message.chat.id, "❌ Failed to generate image. Please try again later.")
 
@@ -162,12 +170,11 @@ def callback_inline(call):
     elif call.data == 'example':
         bot.send_message(call.message.chat.id, '💡 Example prompt: "A beautiful sunset over the mountains."')
     elif call.data == 'ai' or call.data == 'generate_again':
-        # Use the last prompt from user state
-        last_prompt = user_prompts.get(call.from_user.id)
-        if last_prompt:
-            ask_prompt(call.message, prompt=last_prompt)
-        else:
-            bot.send_message(call.message.chat.id, "❗ Could not find the previous prompt. Please send a new prompt.")
+        user_id = call.from_user.id  
+        message = call.message
+        message.from_user = call.from_user 
+        ask_prompt(message, regenerate=True)
+
     elif call.data == 'check_join':
         if is_user_in_channel(call.from_user.id):
             bot.send_message(call.message.chat.id, "✅ Thank you for joining! Now you can use the bot.")
@@ -194,6 +201,8 @@ def all_messages(message):
         if not is_user_in_channel(message.from_user.id):
             force_join_channel(message)
             return
+        # Save the prompt for regenerate button
+        user_prompts[message.from_user.id] = message.text
         ask_prompt(message)
         bot.register_next_step_handler(message, ask_prompt)
 
