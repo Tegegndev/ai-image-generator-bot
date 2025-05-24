@@ -8,13 +8,13 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return render_template('hello.html')
+    return "Hello, World! This is a Flask app running with the Telegram bot."
 
 if __name__ == "__main__":
     if IN_PRODUCTION:
         print(colored("🌐 Running in production mode with webhook...", 'green'))
         bot.remove_webhook()
-        bot.set_webhook(url=WEBHOOK_URL)
+        #bot.set_webhook(url=WEBHOOK_URL)
         app.run(host='0.0.0.0')
         print(colored("🤖 Bot is restarted ...", 'yellow'))
     else:
