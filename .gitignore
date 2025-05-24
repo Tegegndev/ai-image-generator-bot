@@ -1,3 +1,4 @@
 ./config.py
 # pycache exclude folder
 __pycache__/
+.env/
