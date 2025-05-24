@@ -4,10 +4,35 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from termcolor import colored
 from utils import image_generator_api
 import time
-
+from flask import Flask, request
 
 
 bot = telebot.TeleBot(BOT_TOKEN, colorful_logs=True,)
+app = Flask(__name__)
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    update = telebot.types.Update.de_json(request.get_json())
+    bot.process_new_updates([update])
+    return 'ok', 200
+
+# Set webhook
+@app.route('/set_webhook', methods=['GET'])
+def set_webhook():
+    if WEBHOOK_URL:
+        webhook_url = WEBHOOK_URL
+        bot.remove_webhook()
+        bot.set_webhook(url=webhook_url)
+        return 'Webhook set ', 200
+    else:
+        print("Please set the webhook URL in config.py")
+        return 'Webhook URL not set', 400
+    
+#remove webhook 
+@app.route('/remove_webhook', methods=['GET'])
+def remove_webhook():
+    bot.remove_webhook()
+    return 'Webhook removed', 200
 
 def is_user_in_channel(user_id):
     try:
