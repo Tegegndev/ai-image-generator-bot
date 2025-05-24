@@ -7,7 +7,7 @@ import time
 from flask import Flask, request
 
 
-bot = telebot.TeleBot(BOT_TOKEN, colorful_logs=True,)
+bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
