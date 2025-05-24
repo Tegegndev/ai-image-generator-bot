@@ -206,14 +206,3 @@ def all_messages(message):
         ask_prompt(message)
         bot.register_next_step_handler(message, ask_prompt)
 
-if __name__ == '__main__':
-    if IN_PRODUCTION:
-        print(colored("🌐 Running in production mode with webhook...", 'green'))
-        bot.remove_webhook()
-        bot.set_webhook(url=WEBHOOK_URL)
-        app.run(host='0.0.0')
-        print(colored("🤖 Bot is restarted ...", 'yellow'))
-    else:
-        print(colored("🤖 Running in development mode with polling...", 'green'))
-        bot.polling(timeout=40)
-
