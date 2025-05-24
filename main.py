@@ -5,7 +5,7 @@ from termcolor import colored
 from utils import image_generator_api
 import time
 
-CHANNEL_USERNAME = "@tegegndev"
+
 
 bot = telebot.TeleBot(BOT_TOKEN, colorful_logs=True,)
 
@@ -54,7 +54,7 @@ Just send your prompt and I will generate an image for you! ✨
 def send_typing_action(chat_id):
     bot.send_chat_action(chat_id, 'typing')
 
-# Store user prompts for "Generate Again"
+
 user_prompts = {}
 
 def ask_prompt(message, prompt=None):
@@ -66,14 +66,15 @@ def ask_prompt(message, prompt=None):
     keyboard.add(generate_again_btn)
     if prompt is None:
         prompt = message.text
-    # Save the prompt for this user
+
+    # Save to dict the promopt
     user_prompts[message.from_user.id] = prompt
 
     # Typing effect
     send_typing_action(message.chat.id)
     time.sleep(1.2)
 
-    # Delete previous bot messages for smooth UX
+ 
     try:
         if hasattr(message, 'reply_to_message') and message.reply_to_message:
             bot.delete_message(message.chat.id, message.reply_to_message.message_id)
@@ -93,6 +94,7 @@ def ask_prompt(message, prompt=None):
         except Exception as e:
             print(colored(f"API error: {e}", 'red'))
         time.sleep(1)
+
     if result:
         # Always send to the chat where the user is, not to from_user.id
         sent_msg = bot.send_photo(message.chat.id, result, reply_markup=keyboard)
@@ -121,7 +123,7 @@ def help(message):
 def callback_inline(call):
     if call.data == 'about':
         about_text = (
-            "ℹ️ *About AI Image Generator Bot*\n\n"
+            "ℹ️ *About  Bot*\n\n"
             "This bot generates images from text prompts using AI.\n\n"
             "🌐 *Channels:*\n"
             "• [@tegegndev](https://t.me/tegegndev)\n"
@@ -144,6 +146,7 @@ def callback_inline(call):
     elif call.data == 'check_join':
         if is_user_in_channel(call.from_user.id):
             bot.send_message(call.message.chat.id, "✅ Thank you for joining! Now you can use the bot.")
+            start(call.message)
             # Optionally, you can call start or ask_prompt again here
         else:
             force_join_channel(call.message)
